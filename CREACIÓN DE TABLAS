@@ -1,0 +1,101 @@
+-- ESTRUCTURA DE LA BASE BD_HELADERIA
+
+CREATE TABLE [tb_cliente]
+( 
+	[cod_cliente]        char(4)  NOT NULL ,
+	[des_apepaterno]     varchar(25)  NULL ,
+	[des_apematerno]     varchar(25)  NULL ,
+	[des_nombres]        varchar(25)  NULL ,
+	[des_domicilio]      varchar(100)  NULL ,
+	[cod_ubigeo]         char(6)  NOT NULL ,
+	[des_telefono]       varchar(10)  NULL ,
+	[des_email]          varchar(50)  NULL ,
+	[fec_nacimiento]     smalldatetime  NULL ,
+	[fec_notificacion]   datetime  NULL 
+)
+go
+
+ALTER TABLE [tb_cliente]
+	ADD CONSTRAINT [pk_tb_cliente] PRIMARY KEY  CLUSTERED ([cod_cliente] ASC)
+go
+
+CREATE TABLE [tb_detalle_pedido]
+( 
+	[cod_pedido]         char(5)  NOT NULL ,
+	[cod_helado]         char(3)  NOT NULL ,
+	[num_cantidad]       integer  NULL ,
+	[num_precio_venta]   smallmoney  NULL 
+)
+go
+
+ALTER TABLE [tb_detalle_pedido]
+	ADD CONSTRAINT [pk_tb_detalle_pedido] PRIMARY KEY  CLUSTERED ([cod_pedido] ASC,[cod_helado] ASC)
+go
+
+CREATE TABLE [tb_helado]
+( 
+	[cod_helado]         char(3)  NOT NULL ,
+	[des_helado]         varchar(100)  NULL ,
+	[des_composicion]    varchar(255)  NULL ,
+	[num_stock_actual]   integer  NULL ,
+	[num_precio]         smallmoney  NULL 
+)
+go
+
+ALTER TABLE [tb_helado]
+	ADD CONSTRAINT [pk_tb_helado] PRIMARY KEY  CLUSTERED ([cod_helado] ASC)
+go
+
+CREATE TABLE [tb_horario]
+( 
+	[cod_horario]        char(2)  NOT NULL ,
+	[des_horario]        varchar(25)  NULL 
+)
+go
+
+ALTER TABLE [tb_horario]
+	ADD CONSTRAINT [XPKtb_horario] PRIMARY KEY  CLUSTERED ([cod_horario] ASC)
+go
+
+CREATE TABLE [tb_pedido]
+( 
+	[cod_pedido]         char(5)  NOT NULL ,
+	[cod_cliente]        char(4)  NOT NULL ,
+	[fec_pedido]         datetime  NULL ,
+	[ind_estado]         char(1)  NULL ,
+	[cod_repartidor]     char(4)  NULL ,
+	[cod_horario]        char(2)  NULL ,
+	[fec_expedicion]     datetime  NULL 
+)
+go
+
+ALTER TABLE [tb_pedido]
+	ADD CONSTRAINT [pk_tb_pedido] PRIMARY KEY  CLUSTERED ([cod_pedido] ASC)
+go
+
+CREATE TABLE [tb_repartidor]
+( 
+	[cod_repartidor]     char(4)  NOT NULL ,
+	[des_appaterno]      varchar(25)  NULL ,
+	[des_apmaterno]      varchar(25)  NULL ,
+	[des_nombres]        varchar(25)  NULL ,
+	[des_domicilio]      varchar(100)  NULL ,
+	[cod_ubigeo]         char(6)  NOT NULL 
+)
+go
+
+ALTER TABLE [tb_repartidor]
+	ADD CONSTRAINT [pk_tb_repartidor] PRIMARY KEY  CLUSTERED ([cod_repartidor] ASC)
+go
+
+CREATE TABLE [tb_ubigeo]
+( 
+	[cod_ubigeo]         char(6)  NOT NULL ,
+	[des_ubigeo]         varchar(50)  NULL ,
+	[cod_ubigeo_sup]     char(6)  NULL 
+)
+go
+
+ALTER TABLE [tb_ubigeo]
+	ADD CONSTRAINT [pk_tb_ubigeo] PRIMARY KEY  CLUSTERED ([cod_ubigeo] ASC)
+go
