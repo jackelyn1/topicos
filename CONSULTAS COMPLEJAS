@@ -1,0 +1,580 @@
+-- 1. Ver todos los pedidos con sus detalles básicos 
+SELECT *
+FROM tb_pedido;
+
+-- Esta consulta selecciona todas las columnas de la tabla tb_pedido.
+-- SELECT *: El asterisco (*) se usa para seleccionar todas las columnas de la tabla.
+-- FROM tb_pedido: Se especifica la tabla "tb_pedido" de la cual se extraerán los datos.
+
+-- 2. Listar los helados que cuestan más de 16 soles y tienen stock mayor a 100 unidades
+SELECT cod_helado, des_helado, num_precio, num_stock_actual
+FROM tb_helado
+WHERE num_precio > 16 AND num_stock_actual > 100;
+
+-- SELECT cod_helado, des_helado, num_precio, num_stock_actual: Se seleccionan las columnas cod_helado (código del helado), 
+-- des_helado (descripción del helado), num_precio (precio del helado) y num_stock_actual (stock actual de helados).
+-- FROM tb_helado: La consulta obtiene los datos de la tabla "tb_helado", que contiene la información de los helados.
+-- WHERE num_precio > 16: Filtra los helados cuyo precio es mayor a 16 soles.
+-- AND num_stock_actual > 100: Además, filtra solo aquellos helados que tienen un stock mayor a 100 unidades.
+-- Ambas condiciones deben cumplirse para que los helados sean seleccionados (precio > 16 y stock > 100).
+
+-- 3. Ver todos los detalles de los pedidos de un cliente específico
+SELECT 
+    p.cod_pedido,
+    p.fec_pedido,
+    c.des_nombres + ' ' + c.des_apepaterno AS nombre_cliente,
+    h.des_helado,
+    dp.num_cantidad,
+    dp.num_precio_venta,
+    r.des_nombres + ' ' + r.des_appaterno AS nombre_repartidor,
+    hr.des_horario
+FROM tb_pedido p
+    INNER JOIN tb_cliente c ON p.cod_cliente = c.cod_cliente
+    INNER JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido
+    INNER JOIN tb_helado h ON dp.cod_helado = h.cod_helado
+    INNER JOIN tb_repartidor r ON p.cod_repartidor = r.cod_repartidor
+    INNER JOIN tb_horario hr ON p.cod_horario = hr.cod_horario
+WHERE c.des_apepaterno = 'CHUNGA';
+
+-- SELECT p.cod_pedido, p.fec_pedido, c.des_nombres + ' ' + c.des_apepaterno AS nombre_cliente: 
+-- Se seleccionan el código del pedido (cod_pedido), la fecha del pedido (fec_pedido) 
+-- y se concatenan el nombre y apellido del cliente para formar el nombre completo.
+
+-- h.des_helado: Selecciona la descripción del helado (des_helado) que está asociado al pedido.
+
+-- dp.num_cantidad, dp.num_precio_venta: Se selecciona la cantidad (num_cantidad) de helados 
+-- y el precio de venta (num_precio_venta) de cada uno en el detalle del pedido.
+
+-- r.des_nombres + ' ' + r.des_appaterno AS nombre_repartidor: 
+-- Se concatenan el nombre y apellido del repartidor para mostrar su nombre completo.
+
+-- hr.des_horario: Se selecciona el horario de entrega (des_horario) asociado al pedido.
+
+-- FROM tb_pedido p: La consulta obtiene los datos de la tabla "tb_pedido", que contiene la información de los pedidos.
+-- INNER JOIN tb_cliente c ON p.cod_cliente = c.cod_cliente: Se une la tabla "tb_cliente" para relacionar los pedidos con los clientes 
+-- mediante el código de cliente (cod_cliente).
+
+-- INNER JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido: Se une la tabla "tb_detalle_pedido" 
+-- para obtener los detalles específicos del pedido, como la cantidad y el precio de venta de los helados.
+
+-- INNER JOIN tb_helado h ON dp.cod_helado = h.cod_helado: Se une la tabla "tb_helado" para obtener la descripción del helado pedido.
+
+-- INNER JOIN tb_repartidor r ON p.cod_repartidor = r.cod_repartidor: 
+-- Se une la tabla "tb_repartidor" para obtener los datos del repartidor asignado al pedido.
+
+-- INNER JOIN tb_horario hr ON p.cod_horario = hr.cod_horario: 
+-- Se une la tabla "tb_horario" para obtener el horario de entrega del pedido.
+
+-- WHERE c.des_apepaterno = 'CHUNGA': 
+-- Se filtran los resultados para que solo se muestren los pedidos hechos por clientes cuyo apellido paterno es 'CHUNGA'.
+
+-- 4. Calcular el número de pedidos por cliente y el monto total gastado
+SELECT 
+    c.cod_cliente,
+    c.des_nombres + ' ' + c.des_apepaterno AS nombre_cliente,
+    COUNT(DISTINCT p.cod_pedido) AS numero_pedidos,
+    SUM(dp.num_cantidad * dp.num_precio_venta) AS monto_total_gastado
+FROM tb_cliente c
+    INNER JOIN tb_pedido p ON c.cod_cliente = p.cod_cliente
+    INNER JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido
+GROUP BY c.cod_cliente, c.des_nombres, c.des_apepaterno
+ORDER BY monto_total_gastado DESC;
+
+-- Esta consulta muestra el número de pedidos realizados por cada cliente y el monto total que han gastado en esos pedidos.
+
+-- SELECT c.cod_cliente, c.des_nombres + ' ' + c.des_apepaterno AS nombre_cliente: 
+-- Se seleccionan el código del cliente (cod_cliente) y se concatenan el nombre y apellido paterno para mostrar el nombre completo del cliente.
+
+-- COUNT(DISTINCT p.cod_pedido) AS numero_pedidos: 
+-- Se cuenta la cantidad de pedidos únicos (cod_pedido) realizados por cada cliente. 
+-- El uso de DISTINCT asegura que solo se cuenten los pedidos únicos por cliente.
+
+-- SUM(dp.num_cantidad * dp.num_precio_venta) AS monto_total_gastado: 
+-- Se calcula el monto total gastado por el cliente multiplicando la cantidad de productos (num_cantidad) por su precio de venta (num_precio_venta)
+-- y luego sumando estos valores para todos los pedidos.
+
+-- FROM tb_cliente c: La consulta obtiene los datos de la tabla "tb_cliente", que contiene la información de los clientes.
+
+-- INNER JOIN tb_pedido p ON c.cod_cliente = p.cod_cliente: 
+-- Se une la tabla "tb_pedido" para relacionar los clientes con sus pedidos utilizando el código de cliente (cod_cliente).
+
+-- INNER JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido: 
+-- Se une la tabla "tb_detalle_pedido" para obtener los detalles de cada pedido, incluyendo la cantidad de productos y el precio de venta.
+
+-- GROUP BY c.cod_cliente, c.des_nombres, c.des_apepaterno: 
+-- Agrupa los resultados por el código del cliente y su nombre completo, para que los cálculos se realicen por cliente.
+
+-- ORDER BY monto_total_gastado DESC: 
+-- Ordena los resultados de manera descendente según el monto total gastado, mostrando primero a los clientes que más han gastado.
+
+
+-- 5. Calcular la edad de los clientes y categorizar por grupo etario
+SELECT 
+    des_nombres + ' ' + des_apepaterno AS nombre_cliente,
+    DATEDIFF(YEAR, fec_nacimiento, GETDATE()) AS edad,
+    CASE 
+        WHEN DATEDIFF(YEAR, fec_nacimiento, GETDATE()) < 30 THEN 'Joven'
+        WHEN DATEDIFF(YEAR, fec_nacimiento, GETDATE()) < 60 THEN 'Adulto'
+        ELSE 'Adulto Mayor'
+    END AS categoria_edad
+FROM tb_cliente;
+
+-- Esta consulta muestra el nombre completo de los clientes, calcula su edad en años, 
+-- y los clasifica en tres categorías de edad: 'Joven', 'Adulto', o 'Adulto Mayor'.
+
+-- SELECT des_nombres + ' ' + des_apepaterno AS nombre_cliente: 
+-- Se concatenan el nombre y apellido paterno de los clientes para mostrar su nombre completo.
+
+-- DATEDIFF(YEAR, fec_nacimiento, GETDATE()) AS edad: 
+-- Se calcula la edad del cliente en años utilizando la función DATEDIFF, que calcula la diferencia en años 
+-- entre la fecha de nacimiento (fec_nacimiento) y la fecha actual (GETDATE()).
+
+-- CASE: 
+-- Se usa una expresión CASE para categorizar a los clientes en grupos etarios según su edad.
+-- WHEN DATEDIFF(YEAR, fec_nacimiento, GETDATE()) < 30 THEN 'Joven': 
+-- Si el cliente tiene menos de 30 años, se le clasifica como 'Joven'.
+-- WHEN DATEDIFF(YEAR, fec_nacimiento, GETDATE()) < 60 THEN 'Adulto': 
+-- Si el cliente tiene entre 30 y 59 años, se le clasifica como 'Adulto'.
+-- ELSE 'Adulto Mayor': 
+-- Si el cliente tiene 60 años o más, se le clasifica como 'Adulto Mayor'.
+
+-- FROM tb_cliente: La consulta obtiene los datos de la tabla "tb_cliente", que contiene la información de los clientes.
+
+-- 6. Análisis de ventas por horario 
+SELECT 
+    h.des_horario,
+    COUNT(DISTINCT p.cod_pedido) AS total_pedidos,
+    SUM(dp.num_cantidad) AS total_helados_vendidos,
+    SUM(dp.num_cantidad * dp.num_precio_venta) AS ingresos_totales,
+    AVG(dp.num_precio_venta) AS precio_promedio_venta
+FROM tb_horario h
+    LEFT JOIN tb_pedido p ON h.cod_horario = p.cod_horario
+    LEFT JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido
+GROUP BY h.des_horario
+ORDER BY total_pedidos DESC;
+
+-- Esta consulta analiza las ventas de helados agrupadas por horario, mostrando el número total de pedidos, 
+-- la cantidad de helados vendidos, los ingresos totales y el precio promedio de venta.
+
+-- SELECT h.des_horario: 
+-- Se selecciona la descripción del horario (des_horario) para identificar las ventas realizadas en cada franja horaria.
+
+-- COUNT(DISTINCT p.cod_pedido) AS total_pedidos: 
+-- Se cuenta el número de pedidos únicos (cod_pedido) realizados en cada horario. 
+-- El uso de DISTINCT asegura que solo se cuenten los pedidos únicos.
+
+-- SUM(dp.num_cantidad) AS total_helados_vendidos: 
+-- Se suma la cantidad de helados vendidos en cada horario, basada en la columna num_cantidad de la tabla de detalles del pedido.
+
+-- SUM(dp.num_cantidad * dp.num_precio_venta) AS ingresos_totales: 
+-- Se calcula el total de ingresos sumando el producto de la cantidad de helados vendidos por su precio de venta.
+
+-- AVG(dp.num_precio_venta) AS precio_promedio_venta: 
+-- Se calcula el precio promedio de venta de los helados en cada horario.
+
+-- FROM tb_horario h: 
+-- Se selecciona la tabla "tb_horario" para analizar las ventas por franjas horarias.
+
+-- LEFT JOIN tb_pedido p ON h.cod_horario = p.cod_horario: 
+-- Se realiza una unión LEFT JOIN con la tabla "tb_pedido" para obtener los pedidos realizados en cada horario.
+-- El LEFT JOIN asegura que todos los horarios se incluyan, aunque no tengan pedidos asociados.
+
+-- LEFT JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido: 
+-- Se realiza una segunda unión LEFT JOIN con la tabla "tb_detalle_pedido" para obtener los detalles de los pedidos.
+
+-- GROUP BY h.des_horario: 
+-- Agrupa los resultados por la descripción del horario (des_horario) para realizar los cálculos correspondientes por cada franja horaria.
+
+-- ORDER BY total_pedidos DESC: 
+-- Ordena los resultados de manera descendente según el número total de pedidos, mostrando primero los horarios con más pedidos.
+
+-- 7. Análisis de rendimiento de repartidores 
+SELECT 
+    r.des_nombres + ' ' + r.des_appaterno AS nombre_repartidor,
+    COUNT(DISTINCT p.cod_pedido) AS total_pedidos_entregados,
+    AVG(DATEDIFF(MINUTE, p.fec_pedido, p.fec_expedicion)) AS tiempo_promedio_entrega,
+    SUM(dp.num_cantidad) AS total_helados_entregados,
+    COUNT(CASE WHEN p.fec_expedicion IS NULL THEN 1 END) AS pedidos_pendientes
+FROM tb_repartidor r
+    LEFT JOIN tb_pedido p ON r.cod_repartidor = p.cod_repartidor
+    LEFT JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido
+GROUP BY r.des_nombres, r.des_appaterno
+ORDER BY total_pedidos_entregados DESC;
+
+
+-- Esta consulta analiza las entregas realizadas por cada repartidor, mostrando el total de pedidos entregados, 
+-- el tiempo promedio de entrega, la cantidad de helados entregados, y los pedidos pendientes.
+
+-- SELECT r.des_nombres + ' ' + r.des_appaterno AS nombre_repartidor: 
+-- Se selecciona y concatena el nombre y apellido paterno del repartidor para mostrar el nombre completo de cada repartidor.
+
+-- COUNT(DISTINCT p.cod_pedido) AS total_pedidos_entregados: 
+-- Se cuenta el número total de pedidos únicos (cod_pedido) entregados por cada repartidor. 
+-- El uso de DISTINCT asegura que cada pedido se cuente una sola vez, incluso si aparece varias veces en los detalles.
+
+-- AVG(DATEDIFF(MINUTE, p.fec_pedido, p.fec_expedicion)) AS tiempo_promedio_entrega: 
+-- Se calcula el tiempo promedio de entrega de cada repartidor midiendo la diferencia en minutos entre la fecha de pedido (fec_pedido) 
+-- y la fecha de expedición (fec_expedicion).
+
+-- SUM(dp.num_cantidad) AS total_helados_entregados: 
+-- Se suma la cantidad de helados entregados por cada repartidor, tomando los valores de la columna num_cantidad en los detalles del pedido.
+
+-- COUNT(CASE WHEN p.fec_expedicion IS NULL THEN 1 END) AS pedidos_pendientes: 
+-- Se cuentan los pedidos pendientes (es decir, aquellos que no tienen una fecha de expedición registrada) 
+-- utilizando una expresión CASE para verificar cuándo la columna fec_expedicion es NULL.
+
+-- FROM tb_repartidor r: 
+-- Se selecciona la tabla "tb_repartidor", que contiene la información de los repartidores.
+
+-- LEFT JOIN tb_pedido p ON r.cod_repartidor = p.cod_repartidor: 
+-- Se une la tabla "tb_pedido" para relacionar los repartidores con los pedidos que han entregado o tienen pendientes.
+
+-- LEFT JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido: 
+-- Se une la tabla "tb_detalle_pedido" para obtener la cantidad de helados entregados en cada pedido.
+
+-- GROUP BY r.des_nombres, r.des_appaterno: 
+-- Agrupa los resultados por el nombre y apellido paterno del repartidor para realizar los cálculos por repartidor.
+
+-- ORDER BY total_pedidos_entregados DESC: 
+-- Ordena los resultados de manera descendente según el total de pedidos entregados, mostrando primero a los repartidores con más entregas.
+
+-- 8. Análisis de productos más vendidos por zona geográfica
+SELECT 
+    u.des_ubigeo AS zona,
+    h.des_helado,
+    COUNT(dp.cod_pedido) AS cantidad_pedidos,
+    SUM(dp.num_cantidad) AS unidades_vendidas,
+    SUM(dp.num_cantidad * dp.num_precio_venta) AS ingresos_totales
+FROM tb_ubigeo u
+    INNER JOIN tb_cliente c ON u.cod_ubigeo = c.cod_ubigeo
+    INNER JOIN tb_pedido p ON c.cod_cliente = p.cod_cliente
+    INNER JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido
+    INNER JOIN tb_helado h ON dp.cod_helado = h.cod_helado
+GROUP BY u.des_ubigeo, h.des_helado
+HAVING COUNT(dp.cod_pedido) > 1
+ORDER BY unidades_vendidas DESC;
+
+-- Esta consulta analiza los productos (helados) más vendidos agrupados por zona geográfica, 
+-- mostrando la cantidad de pedidos, las unidades vendidas y los ingresos totales por cada helado en cada zona.
+
+-- SELECT u.des_ubigeo AS zona: 
+-- Se selecciona la descripción de la zona geográfica (des_ubigeo), que identifica la ubicación de los clientes.
+
+-- h.des_helado: 
+-- Se selecciona la descripción del helado (des_helado) para identificar el producto vendido en cada zona.
+
+-- COUNT(dp.cod_pedido) AS cantidad_pedidos: 
+-- Se cuenta la cantidad de pedidos (cod_pedido) en los que se incluyó cada helado en la zona correspondiente.
+
+-- SUM(dp.num_cantidad) AS unidades_vendidas: 
+-- Se suma la cantidad de helados vendidos en cada zona, utilizando la columna num_cantidad de la tabla de detalles del pedido.
+
+-- SUM(dp.num_cantidad * dp.num_precio_venta) AS ingresos_totales: 
+-- Se calcula el total de ingresos generados por las ventas de helados en cada zona multiplicando la cantidad vendida por el precio de venta.
+
+-- FROM tb_ubigeo u: 
+-- Se selecciona la tabla "tb_ubigeo" que contiene las zonas geográficas, relacionándolas con los clientes.
+
+-- INNER JOIN tb_cliente c ON u.cod_ubigeo = c.cod_ubigeo: 
+-- Se une la tabla "tb_cliente" para asociar cada cliente con su zona geográfica.
+
+-- INNER JOIN tb_pedido p ON c.cod_cliente = p.cod_cliente: 
+-- Se une la tabla "tb_pedido" para relacionar los pedidos realizados por los clientes.
+
+-- INNER JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido: 
+-- Se une la tabla "tb_detalle_pedido" para obtener los detalles de los productos (helados) incluidos en cada pedido.
+
+-- INNER JOIN tb_helado h ON dp.cod_helado = h.cod_helado: 
+-- Se une la tabla "tb_helado" para identificar los helados vendidos en los detalles de los pedidos.
+
+-- GROUP BY u.des_ubigeo, h.des_helado: 
+-- Agrupa los resultados por zona geográfica (des_ubigeo) y helado (des_helado), 
+-- de modo que los cálculos de cantidad de pedidos, unidades vendidas e ingresos totales se realicen por cada combinación de zona y helado.
+
+-- HAVING COUNT(dp.cod_pedido) > 1: 
+-- Se utiliza la cláusula HAVING para filtrar los grupos que tienen más de un pedido, 
+-- de modo que solo se incluyan los helados que hayan sido vendidos en al menos dos pedidos.
+
+-- ORDER BY unidades_vendidas DESC: 
+-- Ordena los resultados de manera descendente según la cantidad de unidades vendidas, 
+-- mostrando primero los helados más vendidos en cada zona.
+
+-- 9. Análisis de tendencias de ventas con comparación mes anterior
+WITH VentasMensuales AS (
+    SELECT 
+        DATEADD(MONTH, DATEDIFF(MONTH, 0, p.fec_pedido), 0) AS primer_dia_mes,
+        SUM(dp.num_cantidad * dp.num_precio_venta) AS ventas_totales,
+        COUNT(DISTINCT p.cod_pedido) AS num_pedidos,
+        COUNT(DISTINCT p.cod_cliente) AS num_clientes
+    FROM tb_pedido p
+        INNER JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido
+    GROUP BY DATEADD(MONTH, DATEDIFF(MONTH, 0, p.fec_pedido), 0)
+)
+SELECT 
+    FORMAT(primer_dia_mes, 'MMMM yyyy') AS mes,
+    ventas_totales,
+    num_pedidos,
+    num_clientes,
+    ventas_totales - LAG(ventas_totales) OVER (ORDER BY primer_dia_mes) AS diferencia_mes_anterior,
+    CASE 
+        WHEN LAG(ventas_totales) OVER (ORDER BY primer_dia_mes) = 0 THEN 0
+        ELSE ROUND(((ventas_totales - LAG(ventas_totales) OVER (ORDER BY primer_dia_mes)) * 100.0 / 
+             LAG(ventas_totales) OVER (ORDER BY primer_dia_mes)), 2)
+    END AS porcentaje_crecimiento,
+    AVG(ventas_totales) OVER (ORDER BY primer_dia_mes ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS promedio_movil_3meses
+FROM VentasMensuales
+ORDER BY primer_dia_mes;
+
+
+-- Esta consulta calcula las ventas mensuales y las compara con las ventas del mes anterior, 
+-- mostrando el crecimiento porcentual y un promedio móvil de 3 meses.
+
+-- WITH VentasMensuales AS (...): 
+-- Se utiliza una CTE (Common Table Expression) llamada VentasMensuales que agrupa las ventas por mes y calcula el total de ventas, 
+-- el número de pedidos y el número de clientes por mes.
+
+-- DATEADD(MONTH, DATEDIFF(MONTH, 0, p.fec_pedido), 0) AS primer_dia_mes: 
+-- Calcula el primer día del mes para cada pedido, usando DATEDIFF para obtener la diferencia de meses desde una referencia (fecha 0) 
+-- y luego DATEADD para ajustar esa diferencia y obtener el primer día de cada mes.
+
+-- SUM(dp.num_cantidad * dp.num_precio_venta) AS ventas_totales: 
+-- Calcula el total de ventas mensuales sumando el número de unidades vendidas multiplicado por el precio de venta de cada producto.
+
+-- COUNT(DISTINCT p.cod_pedido) AS num_pedidos: 
+-- Cuenta el número de pedidos únicos en cada mes.
+
+-- COUNT(DISTINCT p.cod_cliente) AS num_clientes: 
+-- Cuenta el número de clientes únicos que hicieron pedidos en cada mes.
+
+-- SELECT FORMAT(primer_dia_mes, 'MMMM yyyy') AS mes: 
+-- Se formatea el primer día del mes para mostrar solo el mes y el año en formato de texto.
+
+-- ventas_totales: 
+-- Se selecciona el total de ventas del mes.
+
+-- num_pedidos: 
+-- Se selecciona el número de pedidos realizados en ese mes.
+
+-- num_clientes: 
+-- Se selecciona el número de clientes que realizaron pedidos en ese mes.
+
+-- ventas_totales - LAG(ventas_totales) OVER (ORDER BY primer_dia_mes) AS diferencia_mes_anterior: 
+-- Se calcula la diferencia de ventas con respecto al mes anterior usando la función LAG, 
+-- que permite acceder al valor de la fila anterior en la columna ventas_totales.
+
+-- CASE WHEN LAG(ventas_totales) OVER (ORDER BY primer_dia_mes) = 0 THEN 0 ELSE ... END AS porcentaje_crecimiento: 
+-- Calcula el porcentaje de crecimiento de las ventas con respecto al mes anterior. 
+-- Si las ventas del mes anterior son 0, se devuelve 0 para evitar división por cero.
+
+-- ROUND(((ventas_totales - LAG(ventas_totales) OVER (ORDER BY primer_dia_mes)) * 100.0 / 
+-- LAG(ventas_totales) OVER (ORDER BY primer_dia_mes)), 2): 
+-- Se redondea el porcentaje de crecimiento al segundo decimal, calculando la diferencia porcentual entre las ventas de este mes y las del mes anterior.
+
+-- AVG(ventas_totales) OVER (ORDER BY primer_dia_mes ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS promedio_movil_3meses: 
+-- Calcula un promedio móvil de 3 meses para suavizar las fluctuaciones en las ventas. 
+-- La función AVG se aplica sobre las ventas de los tres últimos meses (incluyendo el mes actual).
+
+-- ORDER BY primer_dia_mes: 
+-- Ordena los resultados cronológicamente, comenzando por el mes más antiguo.
+
+-- 10. Análisis de patrones de compra de clientes con segmentación RFM 
+WITH RFM_Base AS (
+    SELECT 
+        c.cod_cliente,
+        c.des_nombres + ' ' + c.des_apepaterno AS nombre_cliente,
+        DATEDIFF(DAY, MAX(p.fec_pedido), GETDATE()) AS recency,
+        COUNT(DISTINCT p.cod_pedido) AS frequency,
+        SUM(dp.num_cantidad * dp.num_precio_venta) AS monetary
+    FROM tb_cliente c
+        INNER JOIN tb_pedido p ON c.cod_cliente = p.cod_cliente
+        INNER JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido
+    GROUP BY c.cod_cliente, c.des_nombres, c.des_apepaterno
+),
+RFM_Scores AS (
+    SELECT 
+        *,
+        NTILE(5) OVER (ORDER BY recency DESC) AS R_score,
+        NTILE(5) OVER (ORDER BY frequency) AS F_score,
+        NTILE(5) OVER (ORDER BY monetary) AS M_score
+    FROM RFM_Base
+)
+SELECT 
+    cod_cliente,
+    nombre_cliente,
+    recency AS dias_desde_ultima_compra,
+    frequency AS total_compras,
+    monetary AS valor_total_compras,
+    R_score,
+    F_score,
+    M_score,
+    CONCAT(R_score, F_score, M_score) AS RFM_Score,
+    CASE 
+        WHEN (R_score >= 4 AND F_score >= 4 AND M_score >= 4) THEN 'Cliente VIP'
+        WHEN (R_score >= 3 AND F_score >= 3 AND M_score >= 3) THEN 'Cliente Leal'
+        WHEN (R_score >= 2 AND F_score >= 2 AND M_score >= 2) THEN 'Cliente Regular'
+        ELSE 'Cliente Ocasional'
+    END AS segmento_cliente
+FROM RFM_Scores
+ORDER BY monetary DESC;
+
+-- Esta consulta utiliza el método RFM para clasificar a los clientes en función de 
+-- su comportamiento de compra en términos de recencia, frecuencia y valor monetario.
+
+-- WITH RFM_Base AS (...): 
+-- Se define una CTE (Common Table Expression) llamada RFM_Base para calcular las métricas RFM de cada cliente.
+
+-- c.cod_cliente: 
+-- Selecciona el código del cliente.
+
+-- c.des_nombres + ' ' + c.des_apepaterno AS nombre_cliente: 
+-- Concatena los nombres y apellidos del cliente para mostrarlos como un solo campo.
+
+-- DATEDIFF(DAY, MAX(p.fec_pedido), GETDATE()) AS recency: 
+-- Calcula la recencia en días desde la última compra del cliente hasta la fecha actual. 
+-- MAX(p.fec_pedido) obtiene la fecha de la última compra.
+
+-- COUNT(DISTINCT p.cod_pedido) AS frequency: 
+-- Cuenta el número de pedidos únicos realizados por cada cliente, lo que representa la frecuencia de compra.
+
+-- SUM(dp.num_cantidad * dp.num_precio_venta) AS monetary: 
+-- Suma el valor total de las compras del cliente, multiplicando la cantidad por el precio de venta.
+
+-- GROUP BY c.cod_cliente, c.des_nombres, c.des_apepaterno: 
+-- Agrupa los resultados por cliente para calcular las métricas RFM.
+
+-- RFM_Scores AS (...): 
+-- Se define una segunda CTE llamada RFM_Scores que asigna puntajes a cada cliente para cada métrica RFM.
+
+-- NTILE(5) OVER (ORDER BY recency DESC) AS R_score: 
+-- Asigna un puntaje (del 1 al 5) a la recencia, donde un puntaje más alto indica que la última compra fue más reciente.
+
+-- NTILE(5) OVER (ORDER BY frequency) AS F_score: 
+-- Asigna un puntaje a la frecuencia de compra, donde un puntaje más alto indica una mayor frecuencia.
+
+-- NTILE(5) OVER (ORDER BY monetary) AS M_score: 
+-- Asigna un puntaje al valor monetario de las compras, donde un puntaje más alto indica un mayor gasto.
+
+-- SELECT ... FROM RFM_Scores: 
+-- Se seleccionan las métricas RFM calculadas junto con los puntajes asignados.
+
+-- CONCAT(R_score, F_score, M_score) AS RFM_Score: 
+-- Combina los puntajes R, F y M en un solo código RFM.
+
+-- CASE ... END AS segmento_cliente: 
+-- Asigna un segmento a cada cliente basado en sus puntajes RFM:
+-- 'Cliente VIP' para clientes con alta recencia, frecuencia y valor monetario.
+-- 'Cliente Leal' para clientes con puntajes moderados.
+-- 'Cliente Regular' para clientes con puntajes más bajos.
+-- 'Cliente Ocasional' para aquellos con puntajes aún más bajos.
+
+-- ORDER BY monetary DESC: 
+-- Ordena los resultados de los clientes por el valor total de sus compras en orden descendente.
+
+-- 11. Análisis de eficiencia operativa y carga de trabajo
+WITH PedidosPorHorario AS (
+    SELECT 
+        r.cod_repartidor,
+        r.des_nombres + ' ' + r.des_appaterno AS nombre_repartidor,
+        h.cod_horario,
+        h.des_horario,
+        COUNT(p.cod_pedido) AS num_pedidos,
+        SUM(dp.num_cantidad) AS total_productos_entregados,
+        SUM(dp.num_cantidad * dp.num_precio_venta) AS valor_total_entregas,
+        COUNT(CASE WHEN p.ind_estado = '1' THEN 1 END) AS pedidos_pendientes,
+        COUNT(CASE WHEN p.ind_estado = '2' THEN 1 END) AS pedidos_en_proceso,
+        COUNT(CASE WHEN p.ind_estado = '3' THEN 1 END) AS pedidos_completados
+    FROM tb_repartidor r
+        CROSS JOIN tb_horario h
+        LEFT JOIN tb_pedido p ON r.cod_repartidor = p.cod_repartidor 
+            AND h.cod_horario = p.cod_horario
+        LEFT JOIN tb_detalle_pedido dp ON p.cod_pedido = dp.cod_pedido
+    GROUP BY 
+        r.cod_repartidor, r.des_nombres, r.des_appaterno,
+        h.cod_horario, h.des_horario
+)
+SELECT 
+    nombre_repartidor,
+    des_horario,
+    num_pedidos,
+    total_productos_entregados,
+    valor_total_entregas,
+    pedidos_pendientes,
+    pedidos_en_proceso,
+    pedidos_completados,
+    CAST(num_pedidos AS FLOAT) / 
+        NULLIF(SUM(num_pedidos) OVER (PARTITION BY cod_horario), 0) * 100 AS porcentaje_carga_horario,
+    RANK() OVER (PARTITION BY cod_horario ORDER BY num_pedidos DESC) AS ranking_eficiencia_horario,
+    CASE 
+        WHEN num_pedidos = 0 THEN 'Sin Actividad'
+        WHEN pedidos_completados = 0 THEN 'Bajo Rendimiento'
+        WHEN CAST(pedidos_completados AS FLOAT) / NULLIF(num_pedidos, 0) >= 0.8 THEN 'Alto Rendimiento'
+        WHEN CAST(pedidos_completados AS FLOAT) / NULLIF(num_pedidos, 0) >= 0.5 THEN 'Rendimiento Normal'
+        ELSE 'Necesita Mejora'
+    END AS clasificacion_eficiencia,
+    CASE 
+        WHEN num_pedidos = 0 THEN 0
+        ELSE ROUND(CAST(pedidos_completados AS FLOAT) / NULLIF(num_pedidos, 0) * 100, 2)
+    END AS tasa_completacion
+FROM PedidosPorHorario
+ORDER BY cod_horario, num_pedidos DESC;
+
+-- Esta consulta evalúa la eficiencia de los repartidores en función de la cantidad de pedidos 
+-- entregados, su estado y la carga de trabajo durante diferentes horarios.
+
+-- WITH PedidosPorHorario AS (...): 
+-- Se define una CTE (Common Table Expression) llamada PedidosPorHorario que calcula varias métricas
+-- relacionadas con los pedidos gestionados por los repartidores en diferentes horarios.
+
+-- r.cod_repartidor:
+-- Selecciona el código del repartidor.
+
+-- r.des_nombres + ' ' + r.des_appaterno AS nombre_repartidor:
+-- Concatena el nombre y apellido del repartidor para mostrarlos como un solo campo.
+
+-- h.cod_horario, h.des_horario:
+-- Selecciona el código y la descripción del horario de entrega.
+
+-- COUNT(p.cod_pedido) AS num_pedidos:
+-- Cuenta el número total de pedidos para cada repartidor en un horario específico.
+
+-- SUM(dp.num_cantidad) AS total_productos_entregados:
+-- Suma la cantidad total de productos entregados por el repartidor.
+
+-- SUM(dp.num_cantidad * dp.num_precio_venta) AS valor_total_entregas:
+-- Calcula el valor total de las entregas multiplicando la cantidad de productos por su precio de venta.
+
+-- COUNT(CASE WHEN p.ind_estado = '1' THEN 1 END) AS pedidos_pendientes:
+-- Cuenta el número de pedidos pendientes (estado '1').
+
+-- COUNT(CASE WHEN p.ind_estado = '2' THEN 1 END) AS pedidos_en_proceso:
+-- Cuenta el número de pedidos en proceso (estado '2').
+
+-- COUNT(CASE WHEN p.ind_estado = '3' THEN 1 END) AS pedidos_completados:
+-- Cuenta el número de pedidos completados (estado '3').
+
+-- GROUP BY ...:
+-- Agrupa los resultados por repartidor y horario para calcular las métricas.
+
+-- SELECT ... FROM PedidosPorHorario:
+-- Selecciona las métricas calculadas en la CTE y realiza análisis adicionales.
+
+-- CAST(num_pedidos AS FLOAT) / NULLIF(SUM(num_pedidos) OVER (PARTITION BY cod_horario), 0) * 100 AS porcentaje_carga_horario:
+-- Calcula el porcentaje de carga de trabajo de cada repartidor respecto al total de pedidos 
+-- en su horario. NULLIF se usa para evitar la división por cero.
+
+-- RANK() OVER (PARTITION BY cod_horario ORDER BY num_pedidos DESC) AS ranking_eficiencia_horario:
+-- Asigna un ranking a cada repartidor en función del número de pedidos gestionados en su horario.
+
+-- CASE ... END AS clasificacion_eficiencia:
+-- Clasifica a los repartidores en función de su eficiencia basada en el número de pedidos completados:
+-- 'Sin Actividad' si no hay pedidos,
+-- 'Bajo Rendimiento' si no hay pedidos completados,
+-- 'Alto Rendimiento' si al menos el 80% de los pedidos fueron completados,
+-- 'Rendimiento Normal' si al menos el 50% fueron completados,
+-- 'Necesita Mejora' en otros casos.
+
+-- CASE ... END AS tasa_completacion:
+-- Calcula la tasa de completación de pedidos como un porcentaje. Redondea a dos decimales.
+
+-- ORDER BY cod_horario, num_pedidos DESC:
+-- Ordena los resultados por código de horario y número de pedidos en orden descendente.
